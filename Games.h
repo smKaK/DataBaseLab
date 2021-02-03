@@ -4,6 +4,7 @@
 
 typedef struct {
     int key_id;
+    int developer_id;
     char gameName[30];
     char gameEngineName[30];
     int nextGameAddress;

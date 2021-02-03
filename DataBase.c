@@ -8,6 +8,13 @@ void InitFiles()
     fclose(gamesFile_s);
     FILE* indexesFile_i = fopen(INDEXES_FILE, "wb+");
     fclose(indexesFile_i);
+
+    for(int i = 0; i < SIZE; ++i)
+    {
+        indexTable[i].key_id = -1;
+        indexTable[i].address = -1;
+    }
+
  }
 
 void ut_m()
@@ -26,7 +33,7 @@ void ut_m()
         fread(&companyName, sizeof(companyName), 1, developersFile);
         fread(&country, sizeof(country), 1, developersFile);
         fread(&firstGameAddress, sizeof(int), 1, developersFile);
-        printf("key id: %d, company name: %s, country: %s, first game address: %d\n",
+        printf("Key id: %d, Company name: %s, Country: %s, First game address: %d\n",
                key_id, companyName, country, firstGameAddress);
     }
     fclose(developersFile);
@@ -34,7 +41,6 @@ void ut_m()
 
 void ut_i()
 {
-
 
     FILE* indexesFile = fopen(INDEXES_FILE, "rb+");
     if(indexesFile == NULL)
@@ -45,10 +51,34 @@ void ut_i()
     for (int i = 0; i < developersCount; i++) {
         fread(&key_id, sizeof(int), 1, indexesFile);
         fread(&address, sizeof(int), 1, indexesFile);
-        printf("key id: %d, address: %d\n",
+        printf("Key id: %d, Address: %d\n",
                key_id, address);
     }
     fclose(indexesFile);
+}
+
+void ut_s()
+{
+    FILE* gamesFile = fopen(GAMES_FILE, "rb+");
+    if(gamesFile == NULL)
+        perror("Error:can't open developers.bin");
+
+    printf("Function: ut_s:\n");
+
+    int key_id, nextGameAddress, developer_id;
+    char gameName[30], gameEngine[30];
+
+    for (int i = 0; i < gamesCount; i++) {
+        fread(&key_id, sizeof(int), 1, gamesFile);
+        fread(&developer_id, sizeof(int), 1, gamesFile);
+        fread(&gameName, sizeof(gameName), 1, gamesFile);
+        fread(&gameEngine, sizeof(gameEngine), 1, gamesFile);
+        fread(&nextGameAddress, sizeof(int), 1, gamesFile);
+        printf("Key id: %d, Game name: %s,  Game engine: %s, Next game address: %d\n",
+               key_id, gameName, gameEngine, nextGameAddress);
+    }
+
+    fclose(gamesFile);
 }
 
 void insert_m(Developer* developer)
@@ -77,6 +107,44 @@ void insert_m(Developer* developer)
     sortIndexTable();
     rewriteIndexTable();
     fclose(developersFile);
-
-
 }
+
+void insert_s(Game* game)
+{
+    FILE* gamesFile = fopen(GAMES_FILE, "rb+");
+    fseek(gamesFile, 0, SEEK_END);
+    fwrite(&game->key_id, sizeof(int), 1, gamesFile);
+    fwrite(&game->developer_id, sizeof (int), 1, gamesFile);
+    fwrite(&game->gameName, sizeof(game->gameName), 1, gamesFile);
+    fwrite(&game->gameEngineName, sizeof(game->gameEngineName), 1, gamesFile);
+    fwrite(&game->nextGameAddress, sizeof(int), 1, gamesFile);
+
+
+    FILE* developersFile = fopen(DEVELOPERS_FILE, "rb+");
+    int offsetToFirstGameAddress = getAddress(game->developer_id) + 64; // 64b = key_id(4b) +
+                                                                        // companyName(30b) +
+                                                                        // country(30b)
+    fseek(developersFile, offsetToFirstGameAddress, SEEK_SET);
+
+    int firstGameAddress;
+    fread(&firstGameAddress, sizeof(int), 1, developersFile);
+
+    int address = gamesCount*sizeof(Game);
+    if (firstGameAddress == -1) {
+        fseek(developersFile, -4, SEEK_CUR);
+        fwrite(&address, sizeof(int), 1, developersFile);
+    } else {
+        int nextGameAddress = firstGameAddress;
+        while (nextGameAddress != -1) {
+            printf("cycle");
+            fseek(gamesFile, nextGameAddress + 68, SEEK_SET);
+            fread(&nextGameAddress, sizeof(int), 1, gamesFile);
+        }
+        fseek(gamesFile, -4, SEEK_CUR);
+        fwrite(&address, sizeof(int), 1, gamesFile);
+    }
+    gamesCount++;
+    fclose(gamesFile);
+    fclose(developersFile);
+}
+

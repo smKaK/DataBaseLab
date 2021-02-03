@@ -30,3 +30,24 @@ void sortIndexTable()
 {
     qsort(indexTable, developersCount, sizeof(indexAddress), cmpfunc);
 }
+
+int getAddress(int key_id)
+{
+    for (int i = 0; i < developersCount; i++) {
+        if (indexTable[i].key_id == key_id) {
+            return indexTable[i].address;
+        }
+    }
+    return -1;
+}
+
+void deleteFromIndexTable(int key_id)
+{
+    for (int i = 0; i < developersCount; i++) {
+        if (indexTable[i].key_id == key_id) {
+            indexTable[i].key_id = -1;
+            indexTable[i].address = -1;
+            return;
+        }
+    }
+}

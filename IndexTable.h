@@ -16,7 +16,7 @@ extern indexAddress indexTable[SIZE];
 void readIndexTable(); // read from Indexes.bin to indexesAddress variable
 void rewriteIndexTable();   // write from  indexesAddress variable to Indexes.bin
 void sortIndexTable(); // sorts indexTable by key_id
-int getAddress(int key_id);
+int getAddress(int key_id); // get address by key_id
 void deleteFromIndexTable(int key_id);
 void setNewAddress();
 

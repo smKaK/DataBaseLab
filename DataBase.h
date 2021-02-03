@@ -17,5 +17,5 @@ void ut_i(); //  writing on screen Indexes.bin file data
 
 void insert_m(Developer* developer); // inserts a developer into developers.bin
 
-
+void insert_s(Game* game); // inserts a game into Games.bin
 #endif //DB_LAB1_DATABASE_H
