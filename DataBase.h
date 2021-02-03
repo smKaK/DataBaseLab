@@ -19,7 +19,7 @@ void insert_m(Developer* developer); // inserts a developer into developers.bin
 
 void insert_s(Game* game); // inserts a game into Games.bin
 
-void get_m(int key_id); //the reading of developer on the basis of direct index access;
+void get_m(int key_id); //reading of developer by key_id on the basis of direct index access;
 
-void get_s(int key_id_m, int key_id_s)
+void get_s(int key_id_m, int key_id_s); //reading the game;
 #endif //DB_LAB1_DATABASE_H

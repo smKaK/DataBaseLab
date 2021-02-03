@@ -18,6 +18,6 @@ int main() {
 
     get_m(13);
     get_m(203);
-
+    get_s(13, 3);
     return 0;
 }

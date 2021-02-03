@@ -156,15 +156,67 @@ void get_m(int key_id)
     }
 
     FILE* developersFile = fopen(DEVELOPERS_FILE, "rb+");
-    fseek(developersFile, offset, SEEK_SET);
+    fseek(developersFile, offset+4, SEEK_SET);
     char companyName[30], country[30];
     int  firstGameAddress;
-    fseek(developersFile,offset + 4 ,SEEK_SET);
     fread(&companyName, sizeof(companyName), 1, developersFile);
     fread(&country, sizeof(country), 1, developersFile);
     fread(&firstGameAddress, sizeof(int), 1, developersFile);
-    printf("Developer with index %d has Company Name: %s, Country: %s, First game address: %d\n",
-           key_id, companyName, country, firstGameAddress);
+    printf("Developer with index %d has Company Name: %s, Country: %s\n",
+           key_id, companyName, country);
     fclose(developersFile);
 }
+
+void get_s(int key_id_m, int key_id_s)
+{
+    int offset_m = getAddress(key_id_m);
+    if (offset_m == -1) {
+        printf("There is no developer with key_id %d ", key_id_m);
+        return;
+    }
+
+    FILE* developersFile = fopen(DEVELOPERS_FILE, "rb+");
+    fseek(developersFile, offset_m, SEEK_SET);
+    char companyName[30], country[30];
+    int  firstGameAddress;
+    fseek(developersFile, offset_m + 64 ,SEEK_SET);
+    fread(&firstGameAddress, sizeof(int), 1, developersFile);
+
+    fclose(developersFile);
+
+    //printf("%d", firstGameAddress);
+
+    if(firstGameAddress == -1)
+    {
+        printf("There are no games by this company");
+        return;
+    } else{
+        FILE* gamesFile = fopen(GAMES_FILE, "rb+");
+        fseek(gamesFile, firstGameAddress, SEEK_SET);
+        char gameName[30], gameEngine[30];
+        int key_id_s_;
+        int nextGameAddress = firstGameAddress;
+        int currentAddress = firstGameAddress;
+        fread(&key_id_s_, sizeof (int), 1, gamesFile);
+        while (key_id_s_ != key_id_s) {
+            if(nextGameAddress == -1)
+            {
+                printf("No Game with key_id %d by company with key_id %d", key_id_s, key_id_m);
+                return;
+            }
+            fseek(gamesFile, nextGameAddress, SEEK_SET);
+            fread(&key_id_s_, sizeof (int), 1, gamesFile);
+            currentAddress = nextGameAddress;
+            fseek(gamesFile, nextGameAddress + 68, SEEK_SET);
+            fread(&nextGameAddress, sizeof(int), 1, gamesFile);
+        }
+
+        fseek(gamesFile, currentAddress+8, SEEK_SET);
+        fread(gameName, sizeof (gameName), 1, gamesFile);
+        fread(gameEngine, sizeof (gameEngine), 1, gamesFile);
+        printf("Game with key id: %d by company with key id: %d has Name: %s and gameEngine: %s"
+            , key_id_s, key_id_m, gameName, gameEngine);
+    }
+}
+
 
