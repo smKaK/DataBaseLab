@@ -19,5 +19,11 @@ int main() {
     get_m(13);
     get_m(203);
     get_s(13, 3);
+
+    update_m(13, "CDProjectRed", "Poland");
+    ut_m();
+
+    update_s(13,3, "Stalker 1", "Xz");
+    ut_s();
     return 0;
 }

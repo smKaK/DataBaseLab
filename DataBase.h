@@ -22,4 +22,8 @@ void insert_s(Game* game); // inserts a game into Games.bin
 void get_m(int key_id); //reading of developer by key_id on the basis of direct index access;
 
 void get_s(int key_id_m, int key_id_s); //reading the game;
+
+void update_m(int key_id, char newCompanyName[30], char newCountryName[30]);
+
+void update_s(int key_id_m, int key_id_s, char newGameName[30], char newGameEngine[30]);
 #endif //DB_LAB1_DATABASE_H
