@@ -1,6 +1,6 @@
 #include <stdio.h>
-
+#include "DataBase.h"
 int main() {
-    printf("Hello, World!\n");
+    InitFiles();
     return 0;
 }
