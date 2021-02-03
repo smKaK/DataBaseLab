@@ -28,5 +28,5 @@ int cmpfunc(const void * a, const void * b) {
 
 void sortIndexTable()
 {
-    qsort(indexTable, developersCount, sizeof(int), cmpfunc);
+    qsort(indexTable, developersCount, sizeof(indexAddress), cmpfunc);
 }

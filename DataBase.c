@@ -29,21 +29,54 @@ void ut_m()
         printf("key id: %d, company name: %s, country: %s, first game address: %d\n",
                key_id, companyName, country, firstGameAddress);
     }
+    fclose(developersFile);
+}
+
+void ut_i()
+{
+
+
+    FILE* indexesFile = fopen(INDEXES_FILE, "rb+");
+    if(indexesFile == NULL)
+        perror("Error:can't open Indexes.bin");
+
+    int key_id, address;
+
+    for (int i = 0; i < developersCount; i++) {
+        fread(&key_id, sizeof(int), 1, indexesFile);
+        fread(&address, sizeof(int), 1, indexesFile);
+        printf("key id: %d, address: %d\n",
+               key_id, address);
+    }
+    fclose(indexesFile);
 }
 
 void insert_m(Developer* developer)
 {
+    for (int i = 0; i < developersCount; i++) {
+        if (indexTable[i].key_id == developer->key_id) {
+             printf("This key is already used\n");
+            return;
+        }
+    }
 
     FILE* developersFile = fopen(DEVELOPERS_FILE, "rb+");
 
-    fseek(developersFile, 0, SEEK_END);
+    readIndexTable();
+    indexTable[developersCount].key_id = developer->key_id;
+    indexTable[developersCount].address = developersCount * sizeof(Developer);
+    developersCount++;
 
+    fseek(developersFile, 0, SEEK_END);
 
     fwrite(&developer->key_id, sizeof(int), 1, developersFile);
     fwrite(&developer->name, sizeof(developer->name), 1, developersFile);
     fwrite(&developer->country, sizeof(developer->country), 1, developersFile);
     fwrite(&developer->firstGameAddress, sizeof(int), 1, developersFile);
 
+    sortIndexTable();
+    rewriteIndexTable();
     fclose(developersFile);
-    developersCount++;
+
+
 }
