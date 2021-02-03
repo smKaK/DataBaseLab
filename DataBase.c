@@ -136,7 +136,6 @@ void insert_s(Game* game)
     } else {
         int nextGameAddress = firstGameAddress;
         while (nextGameAddress != -1) {
-            printf("cycle");
             fseek(gamesFile, nextGameAddress + 68, SEEK_SET);
             fread(&nextGameAddress, sizeof(int), 1, gamesFile);
         }
@@ -145,6 +144,27 @@ void insert_s(Game* game)
     }
     gamesCount++;
     fclose(gamesFile);
+    fclose(developersFile);
+}
+
+void get_m(int key_id)
+{
+    int offset = getAddress(key_id);
+    if (offset == -1) {
+         printf("There is no developer with key_id %d ", key_id);
+        return;
+    }
+
+    FILE* developersFile = fopen(DEVELOPERS_FILE, "rb+");
+    fseek(developersFile, offset, SEEK_SET);
+    char companyName[30], country[30];
+    int  firstGameAddress;
+    fseek(developersFile,offset + 4 ,SEEK_SET);
+    fread(&companyName, sizeof(companyName), 1, developersFile);
+    fread(&country, sizeof(country), 1, developersFile);
+    fread(&firstGameAddress, sizeof(int), 1, developersFile);
+    printf("Developer with index %d has Company Name: %s, Country: %s, First game address: %d\n",
+           key_id, companyName, country, firstGameAddress);
     fclose(developersFile);
 }
 

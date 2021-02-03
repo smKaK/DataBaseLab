@@ -2,17 +2,22 @@
 #include "DataBase.h"
 int main() {
     InitFiles();
-    Developer dev1 = {.key_id = 1, .name = "GSC", .country = "Ukraine", .firstGameAddress = -1};
-    Developer dev2 = {.key_id = 2, .name = "4A", .country = "Ukraine", .firstGameAddress = -1};
-    Game g1 = {.key_id = 1, .developer_id = 2,.gameName = "Stalker 2", .gameEngineName = "Unreal Engine 4", .nextGameAddress = -1};
-    Game  g2 ={.key_id = 2, .developer_id = 2, .gameName = "Witcher 3", .gameEngineName = "Red Engine", .nextGameAddress = -1};
+    Developer dev1 = {.key_id = 13, .name = "GSC", .country = "Ukraine", .firstGameAddress = -1};
+    Developer dev2 = {.key_id = 203, .name = "4A", .country = "Ukraine", .firstGameAddress = -1};
+    Developer dev3 = {.key_id = 303, .name = "55A", .country = "Ukraine", .firstGameAddress = -1};
+    Game g1 = {.key_id = 3, .developer_id = 13,.gameName = "Stalker 2", .gameEngineName = "Unreal Engine 4", .nextGameAddress = -1};
+    Game  g2 ={.key_id = 5, .developer_id = 203, .gameName = "Witcher 3", .gameEngineName = "Red Engine", .nextGameAddress = -1};
     insert_m(&dev2);
     insert_m(&dev1);
+    insert_m(&dev3);
     insert_s(&g1);
     insert_s(&g2);
     ut_m();
     ut_i();
     ut_s();
-    printf("Game: %d , Developer: %d", sizeof (Game), sizeof (Developer));
+
+    get_m(13);
+    get_m(203);
+
     return 0;
 }

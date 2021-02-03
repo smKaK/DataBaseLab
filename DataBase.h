@@ -18,4 +18,8 @@ void ut_i(); //  writing on screen Indexes.bin file data
 void insert_m(Developer* developer); // inserts a developer into developers.bin
 
 void insert_s(Game* game); // inserts a game into Games.bin
+
+void get_m(int key_id); //the reading of developer on the basis of direct index access;
+
+void get_s(int key_id_m, int key_id_s)
 #endif //DB_LAB1_DATABASE_H
