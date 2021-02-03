@@ -1,0 +1,1 @@
+int gamesCount = 0;

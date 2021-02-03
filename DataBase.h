@@ -4,16 +4,18 @@
 #include <stdio.h>
 #include "Games.h"
 #include "Developers.h"
-#define GAMES_FILE "Games.bin"
-#define DEVELOPERS_FILE "Developers.bin"
-#define INDEXES_FILE "Indexes.bin"
-
+#include "IndexTable.h"
 
 void InitFiles(); //    truncates the file to zero length if it exists,
                   //    otherwise creates a file if it does not exist
 
-void ut_m(); // reading and writing master file
+void ut_m(); //writing on screen Developers.bin file data
 
-void ut_s(); // reading and writing slave file
+void ut_s(); // writing on screen Games.bin file data
+
+void ut_i(); //  writing on screen Indexes.bin file data
+
+void insert_m(Developer* developer); // inserts a developer into developers.bin
+
 
 #endif //DB_LAB1_DATABASE_H

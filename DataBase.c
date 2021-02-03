@@ -8,7 +8,7 @@ void InitFiles()
     fclose(gamesFile_s);
     FILE* indexesFile_i = fopen(INDEXES_FILE, "wb+");
     fclose(indexesFile_i);
-}
+ }
 
 void ut_m()
 {
@@ -16,17 +16,34 @@ void ut_m()
     if(developersFile == NULL)
         perror("Error:can't open developers.bin");
 
-    printf("Function: ut_m:");
+    printf("Function: ut_m:\n");
 
-    int key_id;
-    char name[30], country[30];
-    for (int i = 0; i < ; i++) {
-        fread(&index, sizeof(int), 1, file);
-        fread(&modelName, sizeof(modelName), 1, file);
-        fread(&stagesNumber, sizeof(int), 1, file);
-        fread(&firstRocketAddress, sizeof(int), 1, file);
-        cout << "index: " << index << ", model name: " << modelName <<
-             ", number of stages: " << stagesNumber << ", first rocket address: " << firstRocketAddress << endl;
+    int key_id, firstGameAddress;
+    char companyName[30], country[30];
+
+    for (int i = 0; i < developersCount; i++) {
+        fread(&key_id, sizeof(int), 1, developersFile);
+        fread(&companyName, sizeof(companyName), 1, developersFile);
+        fread(&country, sizeof(country), 1, developersFile);
+        fread(&firstGameAddress, sizeof(int), 1, developersFile);
+        printf("key id: %d, company name: %s, country: %s, first game address: %d\n",
+               key_id, companyName, country, firstGameAddress);
     }
 }
 
+void insert_m(Developer* developer)
+{
+
+    FILE* developersFile = fopen(DEVELOPERS_FILE, "rb+");
+
+    fseek(developersFile, 0, SEEK_END);
+
+
+    fwrite(&developer->key_id, sizeof(int), 1, developersFile);
+    fwrite(&developer->name, sizeof(developer->name), 1, developersFile);
+    fwrite(&developer->country, sizeof(developer->country), 1, developersFile);
+    fwrite(&developer->firstGameAddress, sizeof(int), 1, developersFile);
+
+    fclose(developersFile);
+    developersCount++;
+}
