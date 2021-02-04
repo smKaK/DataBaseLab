@@ -113,8 +113,8 @@ void insert_m(Developer* developer)
     FILE* developersFile = fopen(DEVELOPERS_FILE, "rb+");
 
     readIndexTable();
-    indexTable[developersCount].key_id = developer->key_id;
-    indexTable[developersCount].address = developersCount * sizeof(Developer);
+    indexTable[developersCount+deletedDevelopersCount].key_id = developer->key_id;
+    indexTable[developersCount+deletedDevelopersCount].address = (developersCount+deletedDevelopersCount) * sizeof(Developer);
     developersCount++;
 
     fseek(developersFile, 0, SEEK_END);
@@ -357,15 +357,14 @@ void delete_m(int key_id)
             fseek(gamesFile, nextGameAddress + 68, SEEK_SET);
             fread(&nextGameAddress, sizeof(int), 1, gamesFile);
         }
-        fseek(gamesFile, 72, SEEK_CUR);
-        fwrite(&newIsDel, sizeof(int), 1, gamesFile);
+        //fseek(gamesFile, 72, SEEK_CUR);
+        //fwrite(&newIsDel, sizeof(int), 1, gamesFile);
         fclose(gamesFile);
 
     }
 
 
-    developersCount--;
-    deletedDevelopersCount++;
+
     rewriteIndexTable();
     fclose(developersFile);
 }
@@ -416,33 +415,38 @@ void delete_s(int key_id_m, int key_id_s) {
             fwrite(&newNextGameAddress, sizeof(int), 1, gamesFile);
             fwrite(&newIsDeleted, sizeof(int), 1, gamesFile);
 
+            gamesCount--;
+            deletedGamesCount++;
+
             return;
         }else{
-               while(nextGameAddress != -1){
-                   fseek(gamesFile, nextGameAddress, SEEK_SET);
-                   fread(&key_id_s_, sizeof (int), 1, gamesFile);
-                   if (key_id_s_ == key_id_s)
-                   {
+            while(nextGameAddress != -1){
+                fseek(gamesFile, nextGameAddress, SEEK_SET);
+                fread(&key_id_s_, sizeof (int), 1, gamesFile);
+                if (key_id_s_ == key_id_s)
+                {
+                    fseek(gamesFile, nextGameAddress + 68, SEEK_SET);      //finding new nextAddress
+                    fread(&nextNextGameAddress, sizeof(int), 1, gamesFile);
 
+                    fseek(gamesFile, currentAddress + 68, SEEK_SET);         // writing new nextAddress
+                    fwrite(&nextNextGameAddress, sizeof(int), 1, gamesFile);
 
-                       fseek(gamesFile, nextGameAddress + 68, SEEK_SET);      //finding new nextAddress
-                       fread(&nextNextGameAddress, sizeof(int), 1, gamesFile);
+                    fseek(gamesFile, nextGameAddress + 68, SEEK_SET);
+                    fwrite(&newNextGameAddress, 4,1, gamesFile);
+                    fwrite(&newIsDeleted, 4,1,gamesFile);
 
-                       fseek(gamesFile, currentAddress + 68, SEEK_SET);         // writing new nextAddress
-                       fwrite(&nextNextGameAddress, sizeof(int), 1, gamesFile);
+                    fflush(gamesFile);
 
-                       fseek(gamesFile, nextGameAddress + 68, SEEK_SET);
-                       fwrite(&newNextGameAddress, 4,1, gamesFile);
-                       fwrite(&newIsDeleted, 4,1,gamesFile);
+                    gamesCount--;
+                    deletedGamesCount++;
+                    return;
+                }
 
-                       break;
-                   }
+                currentAddress = nextGameAddress;
+                fseek(gamesFile, nextGameAddress+68, SEEK_SET);
+                fread(&nextGameAddress, sizeof (int), 1, gamesFile);
 
-                   currentAddress = nextGameAddress;
-                   fseek(gamesFile, nextGameAddress+68, SEEK_SET);
-                   fread(&nextGameAddress, sizeof (int), 1, gamesFile);
-
-               }
+            }
 
 
 
