@@ -131,6 +131,18 @@ void insert_m(Developer* developer)
 
 void insert_s(Game* game)
 {
+    int flag = 0;
+    for (int i = 0; i < developersCount; i++) {
+        if (indexTable[i].key_id == game->developer_id && indexTable[i].isDeleted != 1) {
+            flag = 1;
+        }
+    }
+    if(flag == 0)
+    {
+        printf("this developer does not exists!!!\n");
+        return;
+    }
+
     FILE* gamesFile = fopen(GAMES_FILE, "rb+");
     fseek(gamesFile, 0, SEEK_END);
     fwrite(&game->key_id, sizeof(int), 1, gamesFile);
@@ -357,3 +369,87 @@ void delete_m(int key_id)
     rewriteIndexTable();
     fclose(developersFile);
 }
+
+
+void delete_s(int key_id_m, int key_id_s) {
+    int offset_m = getAddress(key_id_m);
+    if (offset_m == -1) {
+        printf("There is no developer with key id %d\n", key_id_m);
+        return;
+    }
+
+    FILE *developersFile = fopen(DEVELOPERS_FILE, "rb+");
+    fseek(developersFile, offset_m, SEEK_SET);
+    int firstGameAddress;
+    fseek(developersFile, offset_m + 64, SEEK_SET);
+    fread(&firstGameAddress, sizeof(int), 1, developersFile);
+
+
+    if (firstGameAddress == -1) {
+        printf("There are no games by this company\n");
+        return;
+    } else {
+        FILE *gamesFile = fopen(GAMES_FILE, "rb+");
+
+
+        int key_id_s_;
+        int newNextGameAddress = -1;
+
+        int newIsDeleted = 1;
+
+        int nextNextGameAddress = -1;
+        int nextGameAddress = firstGameAddress;
+        int currentAddress = firstGameAddress;
+
+        fseek(gamesFile, firstGameAddress, SEEK_SET);
+        fread(&key_id_s_, sizeof(int), 1, gamesFile);
+
+        fseek(gamesFile, firstGameAddress + 68, SEEK_SET);
+        fread(&nextGameAddress, sizeof(int), 1, gamesFile);
+
+        if (key_id_s_ == key_id_s) {
+
+            fseek(developersFile, offset_m + 64, SEEK_SET);             //change first Game Address field
+            fwrite(&nextGameAddress, sizeof(int), 1, developersFile);
+
+            fseek(gamesFile, firstGameAddress + 68, SEEK_SET);     // change next game address to -1 and set isDeleted
+            fwrite(&newNextGameAddress, sizeof(int), 1, gamesFile);
+            fwrite(&newIsDeleted, sizeof(int), 1, gamesFile);
+
+            return;
+        }else{
+               while(nextGameAddress != -1){
+                   fseek(gamesFile, nextGameAddress, SEEK_SET);
+                   fread(&key_id_s_, sizeof (int), 1, gamesFile);
+                   if (key_id_s_ == key_id_s)
+                   {
+
+
+                       fseek(gamesFile, nextGameAddress + 68, SEEK_SET);      //finding new nextAddress
+                       fread(&nextNextGameAddress, sizeof(int), 1, gamesFile);
+
+                       fseek(gamesFile, currentAddress + 68, SEEK_SET);         // writing new nextAddress
+                       fwrite(&nextNextGameAddress, sizeof(int), 1, gamesFile);
+
+                       fseek(gamesFile, nextGameAddress + 68, SEEK_SET);
+                       fwrite(&newNextGameAddress, 4,1, gamesFile);
+                       fwrite(&newIsDeleted, 4,1,gamesFile);
+
+                       break;
+                   }
+
+                   currentAddress = nextGameAddress;
+                   fseek(gamesFile, nextGameAddress+68, SEEK_SET);
+                   fread(&nextGameAddress, sizeof (int), 1, gamesFile);
+
+               }
+
+
+
+        }
+
+        fclose(gamesFile);
+    }
+    fclose(developersFile);
+}
+

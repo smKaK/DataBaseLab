@@ -29,4 +29,6 @@ void update_m(int key_id, char newCompanyName[30], char newCountryName[30]);
 void update_s(int key_id_m, int key_id_s, char newGameName[30], char newGameEngine[30]);
 
 void delete_m(int key_m);
+
+void delete_s(int key_id_m, int key_id_s);
 #endif //DB_LAB1_DATABASE_H
