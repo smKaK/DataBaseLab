@@ -8,8 +8,9 @@ typedef struct {
     char gameName[30];
     char gameEngineName[30];
     int nextGameAddress;
+    int isDeleted;
 } Game;
 
 extern int gamesCount;
-
+extern int deletedGamesCount;
 #endif //DB_LAB1_GAMES_H

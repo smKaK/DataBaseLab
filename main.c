@@ -5,8 +5,8 @@ int main() {
     Developer dev1 = {.key_id = 13, .name = "GSC", .country = "Ukraine", .firstGameAddress = -1};
     Developer dev2 = {.key_id = 203, .name = "4A", .country = "Ukraine", .firstGameAddress = -1};
     Developer dev3 = {.key_id = 303, .name = "55A", .country = "Ukraine", .firstGameAddress = -1};
-    Game g1 = {.key_id = 3, .developer_id = 13,.gameName = "Stalker 2", .gameEngineName = "Unreal Engine 4", .nextGameAddress = -1};
-    Game  g2 ={.key_id = 5, .developer_id = 203, .gameName = "Witcher 3", .gameEngineName = "Red Engine", .nextGameAddress = -1};
+    Game g1 = {.key_id = 3, .developer_id = 13,.gameName = "Stalker 2", .gameEngineName = "Unreal Engine 4", .nextGameAddress = -1, .isDeleted = 0};
+    Game  g2 ={.key_id = 5, .developer_id = 203, .gameName = "Witcher 3", .gameEngineName = "Red Engine", .nextGameAddress = -1, .isDeleted = 0};
     insert_m(&dev2);
     insert_m(&dev1);
     insert_m(&dev3);
@@ -25,5 +25,13 @@ int main() {
 
     update_s(13,3, "Stalker 1", "Xz");
     ut_s();
+
+    delete_m(13);
+    ut_i();
+    ut_m();
+    ut_s();
+
+    get_m(13);
+    get_s(13, 3);
     return 0;
 }

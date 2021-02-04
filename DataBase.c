@@ -13,6 +13,7 @@ void InitFiles()
     {
         indexTable[i].key_id = -1;
         indexTable[i].address = -1;
+        indexTable[i].isDeleted = 0;
     }
 
  }
@@ -28,15 +29,27 @@ void ut_m()
     int key_id, firstGameAddress;
     char companyName[30], country[30];
 
-    for (int i = 0; i < developersCount; i++) {
-        fread(&key_id, sizeof(int), 1, developersFile);
-        fread(&companyName, sizeof(companyName), 1, developersFile);
-        fread(&country, sizeof(country), 1, developersFile);
-        fread(&firstGameAddress, sizeof(int), 1, developersFile);
-        printf("Key id: %d, Company name: %s, Country: %s, First game address: %d\n",
-               key_id, companyName, country, firstGameAddress);
+    FILE* indexesFile = fopen(DEVELOPERS_FILE, "rb+");
+    if(indexesFile == NULL)
+        perror("Error:can't open Indexes.bin\n");
+    for(int i = 0; i < developersCount + deletedDevelopersCount; ++i)
+    {
+        if(indexTable[i].isDeleted == 0)
+        {
+            int address = getAddress(indexTable[i].key_id);
+            fseek(developersFile, address, SEEK_SET);
+            fread(&key_id, sizeof(int), 1, developersFile);
+            fread(&companyName, sizeof(companyName), 1, developersFile);
+            fread(&country, sizeof(country), 1, developersFile);
+            fread(&firstGameAddress, sizeof(int), 1, developersFile);
+            printf("Key id: %d, Company name: %s, Country: %s, First game address: %d\n",
+                   key_id, companyName, country, firstGameAddress);
+        }
+
     }
+
     fclose(developersFile);
+    fclose(indexesFile);
 }
 
 void ut_i()
@@ -46,13 +59,14 @@ void ut_i()
     if(indexesFile == NULL)
         perror("Error:can't open Indexes.bin\n");
 
-    int key_id, address;
+    int key_id, address, isDeleted;
 
-    for (int i = 0; i < developersCount; i++) {
+    for (int i = 0; i < developersCount + deletedDevelopersCount; i++) {
         fread(&key_id, sizeof(int), 1, indexesFile);
         fread(&address, sizeof(int), 1, indexesFile);
-        printf("Key id: %d, Address: %d\n",
-               key_id, address);
+        fread(&isDeleted, sizeof(int), 1, indexesFile);
+        printf("Key id: %d, Address: %d, is Deleted: %d\n",
+               key_id, address, isDeleted);
     }
     fclose(indexesFile);
 }
@@ -61,21 +75,27 @@ void ut_s()
 {
     FILE* gamesFile = fopen(GAMES_FILE, "rb+");
     if(gamesFile == NULL)
-        perror("Error:can't open developers.bin\n");
+        perror("Error:can't open Games.bin\n");
 
     printf("Function: ut_s:\n");
 
-    int key_id, nextGameAddress, developer_id;
+    int key_id, nextGameAddress, developer_id, isDeleted;
     char gameName[30], gameEngine[30];
 
-    for (int i = 0; i < gamesCount; i++) {
-        fread(&key_id, sizeof(int), 1, gamesFile);
-        fread(&developer_id, sizeof(int), 1, gamesFile);
-        fread(&gameName, sizeof(gameName), 1, gamesFile);
-        fread(&gameEngine, sizeof(gameEngine), 1, gamesFile);
-        fread(&nextGameAddress, sizeof(int), 1, gamesFile);
-        printf("Key id: %d, Game name: %s,  Game engine: %s, Next game address: %d\n",
-               key_id, gameName, gameEngine, nextGameAddress);
+    for (int i = 0; i < gamesCount + deletedGamesCount; i++) {
+        fseek(gamesFile, 72, SEEK_CUR);
+        fread(&isDeleted, sizeof(int), 1, gamesFile);
+        if(isDeleted == 0) {
+            fseek(gamesFile, -76, SEEK_CUR);
+            fread(&key_id, sizeof(int), 1, gamesFile);
+            fread(&developer_id, sizeof(int), 1, gamesFile);
+            fread(&gameName, sizeof(gameName), 1, gamesFile);
+            fread(&gameEngine, sizeof(gameEngine), 1, gamesFile);
+            fread(&nextGameAddress, sizeof(int), 1, gamesFile);
+            fread(&isDeleted, sizeof (int), 1, gamesFile);
+            printf("Key id: %d, Game name: %s,  Game engine: %s, Next game address: %d, IsDeleted:%d \n",
+                   key_id, gameName, gameEngine, nextGameAddress,isDeleted);
+        }
     }
 
     fclose(gamesFile);
@@ -118,7 +138,7 @@ void insert_s(Game* game)
     fwrite(&game->gameName, sizeof(game->gameName), 1, gamesFile);
     fwrite(&game->gameEngineName, sizeof(game->gameEngineName), 1, gamesFile);
     fwrite(&game->nextGameAddress, sizeof(int), 1, gamesFile);
-
+    fwrite(&game->isDeleted, sizeof(int), 1, gamesFile);
 
     FILE* developersFile = fopen(DEVELOPERS_FILE, "rb+");
     int offsetToFirstGameAddress = getAddress(game->developer_id) + 64; // 64b = key_id(4b) +
@@ -129,7 +149,7 @@ void insert_s(Game* game)
     int firstGameAddress;
     fread(&firstGameAddress, sizeof(int), 1, developersFile);
 
-    int address = gamesCount*sizeof(Game);
+    int address = (gamesCount+deletedGamesCount)*sizeof(Game);
     if (firstGameAddress == -1) {
         fseek(developersFile, -4, SEEK_CUR);
         fwrite(&address, sizeof(int), 1, developersFile);
@@ -210,12 +230,21 @@ void get_s(int key_id_m, int key_id_s)
             fseek(gamesFile, nextGameAddress + 68, SEEK_SET);
             fread(&nextGameAddress, sizeof(int), 1, gamesFile);
         }
-
+        int isDeleted = -1;
         fseek(gamesFile, currentAddress+8, SEEK_SET);
         fread(gameName, sizeof (gameName), 1, gamesFile);
         fread(gameEngine, sizeof (gameEngine), 1, gamesFile);
-        printf("Game with key id: %d by company with key id: %d has Name: %s and gameEngine: %s\n"
-            , key_id_s, key_id_m, gameName, gameEngine);
+        fseek(gamesFile,sizeof (int), SEEK_CUR);
+        fread(&isDeleted, sizeof(int), 1, gamesFile);
+        if(isDeleted == 0)
+        {
+            printf("Game with key id: %d by company with key id: %d has Name: %s and gameEngine: %s\n"
+                    , key_id_s, key_id_m, gameName, gameEngine);
+        } else
+        {
+            printf("No Game with key_id %d by company with key_id %d\n", key_id_s, key_id_m);
+        }
+
         fclose(developersFile);
     }
 }
@@ -225,6 +254,7 @@ void update_m(int key_id, char newCompanyName[30], char newCountryName[30])
     int offset = getAddress(key_id);
     if (offset == -1) {
         printf("There is no developer with key id %d\n", key_id);
+        return;
     }
 
     FILE* developerFile = fopen(DEVELOPERS_FILE, "rb+");
@@ -238,6 +268,7 @@ void update_s(int key_id_m, int key_id_s, char newGameName[30], char newGameEngi
     int offset_m = getAddress(key_id_m);
     if (offset_m == -1) {
         printf("There is no developer with key id %d\n", key_id_m);
+        return;
     }
 
     FILE *developersFile = fopen(DEVELOPERS_FILE, "rb+");
@@ -272,9 +303,57 @@ void update_s(int key_id_m, int key_id_s, char newGameName[30], char newGameEngi
             fread(&nextGameAddress, sizeof(int), 1, gamesFile);
         }
 
+
         fseek(gamesFile, currentAddress + 8, SEEK_SET);
         fwrite(newGameName, 30, 1, gamesFile);
         fwrite(newGameEngine, 30, 1, gamesFile);
         fclose(gamesFile);
     }
+}
+
+
+
+void delete_m(int key_id)
+{
+    int k = binarySearch(indexTable,0, developersCount,key_id);
+    if (k == -1) {
+        printf("There is no developer with key id %d\n", key_id);
+        return;
+    }
+   indexTable[k].isDeleted = 1;
+
+    int offset = indexTable[k].address;
+    FILE* developersFile = fopen(DEVELOPERS_FILE, "rb+");
+    int firstGameAddress;
+    fseek(developersFile, offset + 64 ,SEEK_SET);
+    fread(&firstGameAddress, sizeof(int), 1, developersFile);
+    fclose(developersFile);
+    if(firstGameAddress != -1)
+    {
+        FILE* gamesFile = fopen(GAMES_FILE, "rb+");
+        int newIsDel = 1;
+        fseek(gamesFile, firstGameAddress, SEEK_SET);
+        int nextGameAddress = firstGameAddress;
+        int currentAddress = firstGameAddress;
+        while(nextGameAddress != -1)
+        {
+            currentAddress = nextGameAddress;
+            fseek(gamesFile, currentAddress + 72, SEEK_SET);
+            fwrite(&newIsDel, sizeof(int), 1, gamesFile);
+            deletedGamesCount++;
+            gamesCount--;
+            fseek(gamesFile, nextGameAddress + 68, SEEK_SET);
+            fread(&nextGameAddress, sizeof(int), 1, gamesFile);
+        }
+        fseek(gamesFile, 72, SEEK_CUR);
+        fwrite(&newIsDel, sizeof(int), 1, gamesFile);
+        fclose(gamesFile);
+
+    }
+
+
+    developersCount--;
+    deletedDevelopersCount++;
+    rewriteIndexTable();
+    fclose(developersFile);
 }

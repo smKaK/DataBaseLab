@@ -1,6 +1,7 @@
 #include "IndexTable.h"
 
 indexAddress indexTable[SIZE];
+int deletedDevelopersCount = 0;
 
 void readIndexTable()
 {
@@ -8,6 +9,7 @@ void readIndexTable()
     for (int i = 0; i < developersCount; i++) {
         fread(&indexTable[i].key_id, sizeof(int), 1, indexesFile);
         fread(&indexTable[i].address, sizeof(int), 1, indexesFile);
+        fread(&indexTable[i].isDeleted, sizeof(int), 1, indexesFile);
     }
     fclose(indexesFile);
 }
@@ -18,6 +20,7 @@ void rewriteIndexTable()
     for (int i = 0; i < developersCount; i++) {
         fwrite(&indexTable[i].key_id, sizeof(int), 1, indexesFile);
         fwrite(&indexTable[i].address, sizeof(int), 1, indexesFile);
+        fwrite(&indexTable[i].isDeleted, sizeof(int), 1, indexesFile);
     }
     fclose(indexesFile);
 }
@@ -36,7 +39,7 @@ int binarySearch(indexAddress arr[SIZE], int l, int r, int x)
     if (r >= l) {
         int mid = l + (r - l) / 2;
        if (arr[mid].key_id == x)
-            return arr[mid].address;
+            return mid;
 
          if (arr[mid].key_id > x)
             return binarySearch(arr, l, mid - 1, x);
@@ -47,14 +50,13 @@ int binarySearch(indexAddress arr[SIZE], int l, int r, int x)
 
 int getAddress(int key_id)
 {
-    //for (int i = 0; i < developersCount; i++) {
-      //  if (indexTable[i].key_id == key_id) {
-        //    return indexTable[i].address;
-        //}
-   // }
-   // return -1;
-   return binarySearch(indexTable,  0, developersCount, key_id);
-
+    int i = binarySearch(indexTable, 0,developersCount, key_id);
+    if(i != -1 && indexTable[i].isDeleted == 0) {
+        return indexTable[i].address;
+    } else
+    {
+        return -1;
+    }
 }
 
 void deleteFromIndexTable(int key_id)
@@ -63,6 +65,7 @@ void deleteFromIndexTable(int key_id)
         if (indexTable[i].key_id == key_id) {
             indexTable[i].key_id = -1;
             indexTable[i].address = -1;
+            indexTable[i].isDeleted = 0;
             return;
         }
     }
